@@ -7,7 +7,7 @@ from preprocessing import load_dataset, encode_categorical, preprocess_data
 
 @pytest.fixture
 def sample_data():
-    """Fixture to provide a sample dataset."""
+    """Fixture to provide a sample dataset. and more"""
     return pd.DataFrame({
         "product_name": ["Fridge", "TV", "Smartphone"],
         "category": ["Electronics", "Electronics", "Electronics"],
