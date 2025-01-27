@@ -1,12 +1,13 @@
-name: Train ML Model
+name: Train and Deploy ML Model
 
 on:
   push:
     branches:
-      - '*'  # Run on any branch push for demonstration purposes
+      - '*'  # Trigger workflow on any branch push for demo purposes
 
 permissions:
   contents: read
+  packages: write  # Required for pushing Docker images to GitHub Container Registry
 
 jobs:
   build_and_test:
@@ -26,6 +27,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Lint with flake8
+        run: flake8 .
 
       - name: Run tests with pytest
         run: pytest
@@ -51,6 +55,7 @@ jobs:
       - name: Train the ML model
         run: |
           python training.py
+          mkdir -p artifacts
           mv /tmp/random_forest_model.pkl ./artifacts/random_forest_model.pkl
           mv /tmp/scaler.pkl ./artifacts/scaler.pkl
 
@@ -82,3 +87,18 @@ jobs:
       - name: Verify serving layer with the trained model
         run: |
           python serving.py --model ./artifacts/random_forest_model.pkl --scaler ./artifacts/scaler.pkl
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker Image for Serving Layer
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/model-serving:latest .
+
+      - name: Push Docker Image to GitHub Container Registry
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/model-serving:latest
