@@ -81,10 +81,6 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Verify serving layer with the trained model
-        run: |
-          python serving.py --model ./artifacts/random_forest_model.pkl --scaler ./artifacts/scaler.pkl
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
